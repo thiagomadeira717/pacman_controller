@@ -310,9 +310,10 @@
         let currentActiveId = null;
         let prefijoJugador = "";
 
-        // --- SISTEMA DE COMUNICACIÓN MQTT PARA DATOS MÓVILES ---
+        // --- SISTEMA DE COMUNICACIÓN MQTT SEGURO PARA DATOS MÓVILES ---
         var mqttConnected = false;
-        var client = new Paho.MQTT.Client("broker.hivemq.com", 8000, "WebClient-" + parseInt(Math.random() * 100000));
+        // Puerto 8884 y useSSL: true para evitar bloqueos por HTTPS en GitHub Pages
+        var client = new Paho.MQTT.Client("broker.hivemq.com", Number(8884), "WebClient-" + parseInt(Math.random() * 100000));
 
         client.onConnectionLost = function (responseObject) {
             mqttConnected = false;
@@ -320,12 +321,14 @@
         };
 
         client.connect({
+            useSSL: true,
             onSuccess: function () {
                 mqttConnected = true;
-                console.log("¡Conectado a la Nube MQTT con Datos Móviles!");
+                console.log("¡Conectado seguro a la Nube MQTT con Datos Móviles!");
             },
-            onFailure: function () {
+            onFailure: function (err) {
                 mqttConnected = false;
+                console.log("Fallo la conexión MQTT:", err);
             }
         });
 
