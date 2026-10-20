@@ -326,7 +326,7 @@
         var statusDiv = document.getElementById('connection-status');
 
         // Conexión por puerto 8884 con SSL para GitHub Pages (HTTPS)
-        var client = new Paho.MQTT.Client("broker.hivemq.com", Number(8884), "WebClient-" + parseInt(Math.random() * 100000));
+        var client = new Paho.MQTT.Client("test.mosquitto.org", Number(8884), "WebClient-" + parseInt(Math.random() * 100000));
 
         client.onConnectionLost = function (responseObject) {
             mqttConnected = false;
