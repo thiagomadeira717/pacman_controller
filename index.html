@@ -4,222 +4,75 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pac-Man Arcade Controller</title>
-
-    <!-- Cargar librería MQTT por WebSockets -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
-
     <style>
         body {
-            margin: 0;
-            padding: 0;
-            background-color: #000;
-            color: #fff;
-            font-family: 'Arial Black', Gadget, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            box-sizing: border-box;
-            overflow: hidden;
-            padding: 20px 10px;
-            border: 6px dotted #deaa00; 
-            background-image: radial-gradient(#ffb8ae 3px, transparent 3px);
-            background-size: 40px 40px;
-            background-position: center;
-            position: relative;
+            margin: 0; padding: 0; background-color: #000; color: #fff;
+            font-family: 'Arial Black', Gadget, sans-serif; display: flex;
+            flex-direction: column; align-items: center; justify-content: center;
+            height: 100vh; box-sizing: border-box; overflow: hidden; padding: 20px 10px;
+            border: 6px dotted #deaa00; background-image: radial-gradient(#ffb8ae 3px, transparent 3px);
+            background-size: 40px 40px; background-position: center; position: relative;
         }
-
         .back-btn {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            background: #000;
-            color: #ffff00;
-            border: 3px solid #ffff00;
-            font-family: 'Arial Black', sans-serif;
-            font-size: 20px;
-            width: 45px;
-            height: 45px;
-            border-radius: 10px;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
-            z-index: 10;
+            position: absolute; top: 15px; left: 15px; background: #000; color: #ffff00;
+            border: 3px solid #ffff00; font-family: 'Arial Black', sans-serif; font-size: 20px;
+            width: 45px; height: 45px; border-radius: 10px; display: none; align-items: center;
+            justify-content: center; cursor: pointer; box-shadow: 0 0 10px rgba(255, 255, 0, 0.5); z-index: 10;
         }
-
         .header {
-            text-align: center;
-            background: rgba(0, 0, 0, 0.9);
-            padding: 10px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 380px;
-            margin-bottom: 10px;
+            text-align: center; background: rgba(0, 0, 0, 0.9); padding: 10px;
+            border-radius: 10px; width: 90%; max-width: 380px; margin-bottom: 10px;
         }
-
-        /* Cartel de Estado de Conexión en vivo */
         #connection-status {
-            font-size: 13px;
-            color: #ffaa00;
-            background: #111;
-            padding: 6px 12px;
-            border-radius: 6px;
-            border: 1px solid #ffaa00;
-            margin-bottom: 15px;
-            text-align: center;
-            max-width: 350px;
-            width: 90%;
+            font-size: 13px; color: #ffaa00; background: #111; padding: 6px 12px;
+            border-radius: 6px; border: 1px solid #ffaa00; margin-bottom: 15px;
+            text-align: center; max-width: 350px; width: 90%;
         }
-
         .pacman-logo {
-            font-size: 24px;
-            color: #ffff00;
-            text-shadow: 3px 3px #de0000;
-            letter-spacing: 2px;
-            margin: 5px 0;
-            border: 3px solid #de0000;
-            padding: 5px;
-            border-radius: 8px;
-            display: inline-block;
+            font-size: 24px; color: #ffff00; text-shadow: 3px 3px #de0000;
+            letter-spacing: 2px; margin: 5px 0; border: 3px solid #de0000;
+            padding: 5px; border-radius: 8px; display: inline-block;
         }
-
-        .decoration {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            font-size: 22px;
-            margin-bottom: 5px;
-        }
-
-        .red { color: #ff0000; }
-        .pink { color: #ffb8ff; }
-        .cyan { color: #00ffff; }
-        .orange { color: #ffb852; }
-
-        #menu-container {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            width: 100%;
-            align-items: center;
-        }
-
+        .decoration { display: flex; gap: 12px; justify-content: center; font-size: 22px; margin-bottom: 5px; }
+        .red { color: #ff0000; } .pink { color: #ffb8ff; } .cyan { color: #00ffff; } .orange { color: #ffb852; }
+        #menu-container { display: flex; flex-direction: column; gap: 20px; width: 100%; align-items: center; }
         .btn-select {
-            width: 90%;
-            max-width: 350px;
-            padding: 25px 10px;
-            font-family: 'Arial Black', sans-serif;
-            font-size: 20px;
-            background: #000;
-            cursor: pointer;
-            border-radius: 15px;
-            text-transform: uppercase;
-            font-weight: bold;
+            width: 90%; max-width: 350px; padding: 25px 10px; font-family: 'Arial Black', sans-serif;
+            font-size: 20px; background: #000; cursor: pointer; border-radius: 15px;
+            text-transform: uppercase; font-weight: bold;
         }
-
         .btn-p1 { color: #ffff00; border: 4px solid #ffff00; box-shadow: 0 0 15px rgba(255, 255, 0, 0.6); }
         .btn-p2 { color: #ffb8ff; border: 4px solid #ffb8ff; box-shadow: 0 0 15px rgba(255, 184, 255, 0.6); }
-
-        #game-ui {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-        }
-
-        .system-controls {
-            display: flex;
-            justify-content: space-between;
-            width: 95%;
-            max-width: 400px;
-            gap: 15px;
-            margin-bottom: 10px;
-        }
-
-        .sys-btn {
-            flex: 1;
-            background: #000;
-            font-family: 'Arial Black', sans-serif;
-            font-size: 22px;
-            padding: 18px 0;
-            cursor: pointer;
-            border-radius: 15px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
+        #game-ui { display: none; flex-direction: column; align-items: center; width: 100%; }
+        .system-controls { display: flex; justify-content: space-between; width: 95%; max-width: 400px; gap: 15px; margin-bottom: 10px; }
+        .sys-btn { flex: 1; background: #000; font-family: 'Arial Black', sans-serif; font-size: 22px; padding: 18px 0; cursor: pointer; border-radius: 15px; font-weight: bold; text-transform: uppercase; }
         .start-btn { color: #ff0000; border: 5px solid #ff0000; box-shadow: 0 0 20px rgba(255, 0, 0, 0.8); }
         .menu-btn { color: #00ffff; border: 5px solid #2121de; box-shadow: 0 0 20px rgba(33, 33, 222, 0.8); }
-
         .controller-container {
-            display: grid;
-            grid-template-areas: 
-                ". up ."
-                "left . right"
-                ". down .";
-            gap: 4px;
-            background: #000000;
-            padding: 16px;
-            border-radius: 25px;
-            border: 3px solid #2121de; 
-            box-shadow: 0 0 20px rgba(33, 33, 222, 0.7);
-            margin-bottom: 10px;
+            display: grid; grid-template-areas: ". up ." "left . right" ". down .";
+            gap: 4px; background: #000000; padding: 16px; border-radius: 25px;
+            border: 3px solid #2121de; box-shadow: 0 0 20px rgba(33, 33, 222, 0.7); margin-bottom: 10px;
         }
-
         .btn {
-            width: 85px;
-            height: 85px;
-            background: #111;
-            border: 3px solid #ffff00;
-            border-radius: 12px;
-            color: #ffff00;
-            font-size: 34px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            user-select: none;
-            touch-action: manipulation;
+            width: 85px; height: 85px; background: #111; border: 3px solid #ffff00;
+            border-radius: 12px; color: #ffff00; font-size: 34px; display: flex;
+            align-items: center; justify-content: center; cursor: pointer; user-select: none; touch-action: manipulation;
         }
-
         .btn.active { background: #ffff00 !important; color: #000 !important; }
-
-        #up { grid-area: up; }
-        #down { grid-area: down; }
-        #left { grid-area: left; }
-        #right { grid-area: right; }
-
-        .status-box {
-            background: rgba(0, 0, 0, 0.9);
-            border: 2px solid #deaa00;
-            padding: 8px 20px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            text-align: center;
-            width: 80%;
-            max-width: 260px;
-        }
-
+        #up { grid-area: up; } #down { grid-area: down; } #left { grid-area: left; } #right { grid-area: right; }
+        .status-box { background: rgba(0, 0, 0, 0.9); border: 2px solid #deaa00; padding: 8px 20px; border-radius: 8px; font-family: 'Courier New', monospace; text-align: center; width: 80%; max-width: 260px; }
         #command-display { color: #ffff00; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <button class="back-btn" id="btn-back" onclick="volverAlMenu()">◄</button>
-
-    <!-- INDICADOR DE ESTADO VISIBLE EN LA PANTALLA -->
     <div id="connection-status">Conectando a la nube MQTT...</div>
 
     <div class="header">
         <div class="decoration">
-            <span class="red">ᗣ</span>
-            <span class="pink">ᗣ</span>
-            <span style="color:#ffff00">ᗧ</span>
-            <span class="cyan">ᗣ</span>
-            <span class="orange">ᗣ</span>
+            <span class="red">ᗣ</span><span class="pink">ᗣ</span><span style="color:#ffff00">ᗧ</span><span class="cyan">ᗣ</span><span class="orange">ᗣ</span>
         </div>
         <div class="pacman-logo" id="logo-text">ARCADE ESP32</div>
     </div>
@@ -251,15 +104,13 @@
         let currentActiveId = null;
         let prefijoJugador = "";
         var mqttConnected = false;
-
         var statusDiv = document.getElementById('connection-status');
 
-        // Conexión segura por puerto 8884 con SSL para GitHub Pages (HTTPS)
         var client = new Paho.MQTT.Client("broker.hivemq.com", Number(8884), "WebClient-" + parseInt(Math.random() * 100000));
 
         client.onConnectionLost = function (responseObject) {
             mqttConnected = false;
-            statusDiv.innerText = "⚠️ Desconectado de la Nube (Sin Datos/Error)";
+            statusDiv.innerText = "⚠️ Desconectado de la Nube";
             statusDiv.style.color = "#ff4444";
             statusDiv.style.borderColor = "#ff4444";
         };
@@ -274,10 +125,9 @@
             },
             onFailure: function (err) {
                 mqttConnected = false;
-                statusDiv.innerText = "❌ Error de Conexión MQTT (Revisar Red)";
+                statusDiv.innerText = "❌ Error de Conexión MQTT";
                 statusDiv.style.color = "#ff4444";
                 statusDiv.style.borderColor = "#ff4444";
-                console.log("Fallo MQTT:", err);
             }
         });
 
@@ -287,7 +137,7 @@
                 message.destinationName = "thiago/pacman/arcade/control";
                 client.send(message);
             } else {
-                alert("⚠️ ADVERTENCIA: No estás conectado a la nube MQTT. Los datos móviles no pueden usar modo local.");
+                alert("⚠️ No estás conectado a la nube MQTT.");
             }
         }
 
@@ -295,7 +145,6 @@
             document.getElementById('menu-container').style.display = 'none';
             document.getElementById('game-ui').style.display = 'flex';
             document.getElementById('btn-back').style.display = 'flex';
-
             if (jugador === 1) {
                 prefijoJugador = "P1_";
                 document.getElementById('logo-text').innerText = "PAC-MAN P1";
@@ -314,7 +163,6 @@
             document.getElementById('logo-text').innerText = "ARCADE ESP32";
             prefijoJugador = "";
             document.getElementById('command-display').innerText = "READY";
-
             if (currentActiveId) {
                 document.getElementById(currentActiveId).classList.remove('active');
                 currentActiveId = null;
@@ -328,7 +176,6 @@
             }
             clickedButton.classList.add('active');
             currentActiveId = elementId;
-            
             let comandoFinal = prefijoJugador + dir;
             document.getElementById('command-display').innerText = comandoFinal;
             enviarAESP32(comandoFinal);
